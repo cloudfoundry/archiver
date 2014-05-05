@@ -6,10 +6,11 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type Compressor interface {
-	Compress(src string, dest string) error
+	Compress(src string, dst string) error
 }
 
 func NewTgz() Compressor {
@@ -30,7 +31,6 @@ func (compressor *tgzCompressor) Compress(src string, dest string) error {
 	}
 	defer file.Close()
 
-	// file write
 	fw, err := os.Create(dest)
 	if err != nil {
 		return err
@@ -43,86 +43,62 @@ func (compressor *tgzCompressor) Compress(src string, dest string) error {
 	tw := tar.NewWriter(gw)
 	defer tw.Close()
 
-	return compressor.compressRecursively(file, absPath, tw)
-}
-
-func (compressor *tgzCompressor) compressRecursively(file *os.File, relativeFrom string, tw *tar.Writer) error {
-	info, err := os.Lstat(file.Name())
-	if err != nil {
-		return err
-	}
-
-	if info.IsDir() {
-		files, err := file.Readdir(0)
+	return filepath.Walk(absPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 
-		// Add subfolders as entries.  This even works for empty dirs.
-		if relativeFrom != file.Name() {
-			hdr, err := tar.FileInfoHeader(info, "")
-			if err != nil {
-				return err
-			}
-
-			err = tw.WriteHeader(hdr)
-			if err != nil {
-				return err
-			}
+		relative, err := filepath.Rel(absPath, path)
+		if err != nil {
+			return err
 		}
 
-		for _, info := range files {
-			subName := filepath.Join(file.Name(), info.Name())
+		return addTarFile(path, relative, tw)
+	})
+}
 
-			subFile, err := os.Open(subName)
-			if err != nil {
-				return err
-			}
+func addTarFile(path, name string, tw *tar.Writer) error {
+	fi, err := os.Lstat(path)
+	if err != nil {
+		return err
+	}
 
-			err = compressor.compressRecursively(subFile, relativeFrom, tw)
-			if err != nil {
-				return err
-			}
+	link := ""
+	if fi.Mode()&os.ModeSymlink != 0 {
+		if link, err = os.Readlink(path); err != nil {
+			return err
 		}
+	}
+
+	hdr, err := tar.FileInfoHeader(fi, link)
+	if err != nil {
+		return err
+	}
+
+	if fi.IsDir() && !strings.HasSuffix(name, "/") {
+		name = name + "/"
+	}
+
+	if hdr.Typeflag == tar.TypeReg && name == "." {
+		// archiving a single file
+		hdr.Name = filepath.Base(path)
 	} else {
-		err = compressor.addFileToTar(file, info, relativeFrom, tw)
+		hdr.Name = name
+	}
+
+	if err := tw.WriteHeader(hdr); err != nil {
+		return err
+	}
+
+	if hdr.Typeflag == tar.TypeReg {
+		file, err := os.Open(path)
 		if err != nil {
 			return err
 		}
-	}
 
-	return nil
-}
+		defer file.Close()
 
-func (compressor *tgzCompressor) addFileToTar(file *os.File, info os.FileInfo, relativeFrom string, tw *tar.Writer) error {
-	link, err := os.Readlink(file.Name())
-	if err != nil {
-		link = ""
-	}
-
-	h, err := tar.FileInfoHeader(info, link)
-	if err != nil {
-		return err
-	}
-
-	relative, err := filepath.Rel(relativeFrom, file.Name())
-	if err != nil {
-		return err
-	}
-
-	if relative == "." {
-		relative = info.Name()
-	}
-
-	h.Name = relative
-
-	err = tw.WriteHeader(h)
-	if err != nil {
-		return err
-	}
-
-	if link == "" {
-		_, err := io.Copy(tw, file)
+		_, err = io.Copy(tw, file)
 		if err != nil {
 			return err
 		}
