@@ -2,7 +2,6 @@ package compressor
 
 import (
 	"compress/gzip"
-	"io"
 	"os"
 )
 
@@ -17,8 +16,6 @@ func NewTgz() Compressor {
 type tgzCompressor struct{}
 
 func (compressor *tgzCompressor) Compress(src string, dest string) error {
-	reader := NewTarReader(src)
-
 	fw, err := os.Create(dest)
 	if err != nil {
 		return err
@@ -28,6 +25,5 @@ func (compressor *tgzCompressor) Compress(src string, dest string) error {
 	gw := gzip.NewWriter(fw)
 	defer gw.Close()
 
-	_, err = io.Copy(gw, reader)
-	return err
+	return WriteTar(src, gw)
 }
