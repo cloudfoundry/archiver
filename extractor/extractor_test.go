@@ -87,7 +87,7 @@ var _ = Describe("Extractor", func() {
 		info, err := executable.Stat()
 		Ω(err).ShouldNot(HaveOccurred())
 
-		Ω(info.Mode()).Should(Equal(os.FileMode(0755)))
+		Ω(info.Mode().Perm()).Should(Equal(os.FileMode(0755)))
 
 		emptyDir, err := os.Open(filepath.Join(extractionDest, "empty-dir"))
 		Ω(err).ShouldNot(HaveOccurred())
