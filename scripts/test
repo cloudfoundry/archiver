@@ -11,4 +11,8 @@ export PATH=$FIRST_GOPATH/bin:$PATH
 go get -t ./...
 
 go install github.com/onsi/ginkgo/ginkgo
+
+# extractor tests assert on file permissions; make sure this is controlled
+umask 022
+
 ginkgo -r -skipMeasurements -randomizeAllSpecs -race "$@"
