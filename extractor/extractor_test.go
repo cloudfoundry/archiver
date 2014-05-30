@@ -84,18 +84,18 @@ var _ = Describe("Extractor", func() {
 		executable, err := os.Open(filepath.Join(extractionDest, "legit-exe-not-a-virus.bat"))
 		Ω(err).ShouldNot(HaveOccurred())
 
-		info, err := executable.Stat()
+		executableInfo, err := executable.Stat()
 		Ω(err).ShouldNot(HaveOccurred())
 
-		Ω(info.Mode()).Should(Equal(os.FileMode(0755)))
+		Ω(executableInfo.Mode()).Should(Equal(os.FileMode(0755)))
 
 		emptyDir, err := os.Open(filepath.Join(extractionDest, "empty-dir"))
 		Ω(err).ShouldNot(HaveOccurred())
 
-		info, err = emptyDir.Stat()
+		emptyDirInfo, err := emptyDir.Stat()
 		Ω(err).ShouldNot(HaveOccurred())
 
-		Ω(info.IsDir()).Should(BeTrue())
+		Ω(emptyDirInfo.IsDir()).Should(BeTrue())
 	}
 
 	Context("when the file is a zip archive", func() {
@@ -105,6 +105,23 @@ var _ = Describe("Extractor", func() {
 
 		It("extracts the ZIP's files, generating directories, and honoring file permissions", func() {
 			extractionTest()
+		})
+
+		Context("when 'unzip' is not in the PATH", func() {
+			var oldPATH string
+
+			BeforeEach(func() {
+				oldPATH = os.Getenv("PATH")
+				os.Setenv("PATH", "/dev/null")
+			})
+
+			AfterEach(func() {
+				os.Setenv("PATH", oldPATH)
+			})
+
+			It("extracts the ZIP's files, generating directories, and honoring file permissions", func() {
+				extractionTest()
+			})
 		})
 	})
 
