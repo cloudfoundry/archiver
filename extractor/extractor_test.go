@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -63,10 +64,13 @@ var _ = Describe("Extractor", func() {
 			Mode: 0755,
 			Body: "rm -rf /",
 		},
-		{
+	}
+
+	if runtime.GOOS != "windows" {
+		archiveFiles = append(archiveFiles, test_helper.ArchiveFile{
 			Name: "./some-symlink",
 			Link: "some-file",
-		},
+		})
 	}
 
 	extractionTest := func() {
@@ -87,7 +91,9 @@ var _ = Describe("Extractor", func() {
 		executableInfo, err := executable.Stat()
 		Ω(err).ShouldNot(HaveOccurred())
 
-		Ω(executableInfo.Mode()).Should(Equal(os.FileMode(0755)))
+		if runtime.GOOS != "windows" {
+			Ω(executableInfo.Mode()).Should(Equal(os.FileMode(0755)))
+		}
 
 		emptyDir, err := os.Open(filepath.Join(extractionDest, "empty-dir"))
 		Ω(err).ShouldNot(HaveOccurred())
@@ -137,9 +143,12 @@ var _ = Describe("Extractor", func() {
 		It("preserves symlinks", func() {
 			extractionTest()
 
-			target, err := os.Readlink(filepath.Join(extractionDest, "some-symlink"))
-			Ω(err).ShouldNot(HaveOccurred())
-			Ω(target).Should(Equal("some-file"))
+			if runtime.GOOS != "windows" {
+				target, err := os.Readlink(filepath.Join(extractionDest, "some-symlink"))
+				Ω(err).ShouldNot(HaveOccurred())
+				Ω(target).Should(Equal("some-file"))
+			}
+
 		})
 	})
 })
