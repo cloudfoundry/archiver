@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -88,6 +89,14 @@ func extractZipArchiveFile(file *zip.File, dest string, input io.Reader) error {
 		err := os.MkdirAll(filepath.Dir(filePath), 0755)
 		if err != nil {
 			return err
+		}
+
+		if fileInfo.Mode()&os.ModeSymlink != 0 {
+			linkName, err := ioutil.ReadAll(input)
+			if err != nil {
+				return err
+			}
+			return os.Symlink(string(linkName), filePath)
 		}
 
 		fileCopy, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fileInfo.Mode())

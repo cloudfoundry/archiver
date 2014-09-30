@@ -44,7 +44,7 @@ func extractTgz(src, dest string) error {
 			return err
 		}
 
-		return exec.Command(tarPath, "zxf", src, "-C", dest).Run()
+		return exec.Command(tarPath, "pzxf", src, "-C", dest).Run()
 	}
 
 	fd, err := os.Open(src)

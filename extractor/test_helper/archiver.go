@@ -33,12 +33,20 @@ func CreateZipArchive(filename string, files []ArchiveFile) {
 			mode = 0777
 		}
 
-		header.SetMode(os.FileMode(mode))
+		if file.Link != "" {
+			header.SetMode(os.FileMode(mode) | os.ModeSymlink)
+		} else {
+			header.SetMode(os.FileMode(mode))
+		}
 
 		f, err := w.CreateHeader(header)
 		Ω(err).ShouldNot(HaveOccurred())
 
-		_, err = f.Write([]byte(file.Body))
+		if file.Link != "" {
+			_, err = f.Write([]byte(file.Link))
+		} else {
+			_, err = f.Write([]byte(file.Body))
+		}
 		Ω(err).ShouldNot(HaveOccurred())
 	}
 

@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -62,17 +61,14 @@ var _ = Describe("Extractor", func() {
 		},
 		{
 			Name: "./legit-exe-not-a-virus.bat",
-			Mode: 0755,
+			Mode: 0644,
 			Body: "rm -rf /",
 		},
-	}
-
-	if runtime.GOOS != "windows" {
-		archiveFiles = append(archiveFiles, test_helper.ArchiveFile{
+		{
 			Name: "./some-symlink",
 			Link: "some-file",
 			Mode: 0755,
-		})
+		},
 	}
 
 	extractionTest := func() {
@@ -92,10 +88,7 @@ var _ = Describe("Extractor", func() {
 
 		executableInfo, err := executable.Stat()
 		Ω(err).ShouldNot(HaveOccurred())
-
-		if runtime.GOOS != "windows" {
-			Ω(executableInfo.Mode()).Should(Equal(os.FileMode(0755)))
-		}
+		Ω(executableInfo.Mode()).Should(Equal(os.FileMode(0644)))
 
 		emptyDir, err := os.Open(filepath.Join(extractionDest, "empty-dir"))
 		Ω(err).ShouldNot(HaveOccurred())
@@ -104,6 +97,15 @@ var _ = Describe("Extractor", func() {
 		Ω(err).ShouldNot(HaveOccurred())
 
 		Ω(emptyDirInfo.IsDir()).Should(BeTrue())
+
+		target, err := os.Readlink(filepath.Join(extractionDest, "some-symlink"))
+		Ω(err).ShouldNot(HaveOccurred())
+		Ω(target).Should(Equal("some-file"))
+
+		symlinkInfo, err := os.Lstat(filepath.Join(extractionDest, "some-symlink"))
+		Ω(err).ShouldNot(HaveOccurred())
+
+		Ω(symlinkInfo.Mode() & 0755).Should(Equal(os.FileMode(0755)))
 	}
 
 	Context("when the file is a zip archive", func() {
@@ -111,8 +113,13 @@ var _ = Describe("Extractor", func() {
 			test_helper.CreateZipArchive(extractionSrc, archiveFiles)
 		})
 
-		It("extracts the ZIP's files, generating directories, and honoring file permissions", func() {
-			extractionTest()
+		Context("when 'unzip' is on the PATH", func() {
+			BeforeEach(func() {
+				_, err := exec.LookPath("unzip")
+				Ω(err).ShouldNot(HaveOccurred())
+			})
+
+			It("extracts the ZIP's files, generating directories, and honoring file permissions and symlinks", extractionTest)
 		})
 
 		Context("when 'unzip' is not in the PATH", func() {
@@ -121,15 +128,16 @@ var _ = Describe("Extractor", func() {
 			BeforeEach(func() {
 				oldPATH = os.Getenv("PATH")
 				os.Setenv("PATH", "/dev/null")
+
+				_, err := exec.LookPath("unzip")
+				Ω(err).Should(HaveOccurred())
 			})
 
 			AfterEach(func() {
 				os.Setenv("PATH", oldPATH)
 			})
 
-			It("extracts the ZIP's files, generating directories, and honoring file permissions", func() {
-				extractionTest()
-			})
+			It("extracts the ZIP's files, generating directories, and honoring file permissions and symlinks", extractionTest)
 		})
 	})
 
@@ -138,23 +146,13 @@ var _ = Describe("Extractor", func() {
 			test_helper.CreateTarGZArchive(extractionSrc, archiveFiles)
 		})
 
-		It("extracts the TGZ's files, generating directories, and honoring file permissions", func() {
-			extractionTest()
-		})
-
-		It("preserves symlinks", func() {
-			extractionTest()
-
-			if runtime.GOOS != "windows" {
-				target, err := os.Readlink(filepath.Join(extractionDest, "some-symlink"))
+		Context("when 'tar' is on the PATH", func() {
+			BeforeEach(func() {
+				_, err := exec.LookPath("tar")
 				Ω(err).ShouldNot(HaveOccurred())
-				Ω(target).Should(Equal("some-file"))
+			})
 
-				symlinkInfo, err := os.Lstat(filepath.Join(extractionDest, "some-symlink"))
-				Ω(err).ShouldNot(HaveOccurred())
-
-				Ω(symlinkInfo.Mode() & 0755).Should(Equal(os.FileMode(0755)))
-			}
+			It("extracts the TGZ's files, generating directories, and honoring file permissions and symlinks", extractionTest)
 		})
 
 		Context("when 'tar' is not in the PATH", func() {
@@ -163,35 +161,16 @@ var _ = Describe("Extractor", func() {
 			BeforeEach(func() {
 				oldPATH = os.Getenv("PATH")
 				os.Setenv("PATH", "/dev/null")
+
+				_, err := exec.LookPath("tar")
+				Ω(err).Should(HaveOccurred())
 			})
 
 			AfterEach(func() {
 				os.Setenv("PATH", oldPATH)
 			})
 
-			It("extracts the TGZ's files, generating directories, and honoring file permissions", func() {
-				extractionTest()
-			})
-
-			It("preserves symlinks", func() {
-				extractionTest()
-
-				if runtime.GOOS != "windows" {
-					ls := exec.Command("ls", "-al", extractionDest)
-					ls.Stdout = os.Stdout
-
-					ls.Run()
-
-					target, err := os.Readlink(filepath.Join(extractionDest, "some-symlink"))
-					Ω(err).ShouldNot(HaveOccurred())
-					Ω(target).Should(Equal("some-file"))
-
-					symlinkInfo, err := os.Lstat(filepath.Join(extractionDest, "some-symlink"))
-					Ω(err).ShouldNot(HaveOccurred())
-
-					Ω(symlinkInfo.Mode() & 0755).Should(Equal(os.FileMode(0755)))
-				}
-			})
+			It("extracts the TGZ's files, generating directories, and honoring file permissions and symlinks", extractionTest)
 		})
 	})
 })
