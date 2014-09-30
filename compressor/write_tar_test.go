@@ -34,6 +34,9 @@ var _ = Describe("WriteTar", func() {
 		_, err = innerFile.Write([]byte("sup"))
 		Ω(err).ShouldNot(HaveOccurred())
 
+		err = os.Symlink("some-file", filepath.Join(dir, "outer-dir", "inner-dir", "some-symlink"))
+		Ω(err).ShouldNot(HaveOccurred())
+
 		srcPath = filepath.Join(dir, "outer-dir")
 		buffer = new(bytes.Buffer)
 	})
@@ -65,6 +68,12 @@ var _ = Describe("WriteTar", func() {
 		contents, err := ioutil.ReadAll(reader)
 		Ω(err).ShouldNot(HaveOccurred())
 		Ω(string(contents)).Should(Equal("sup"))
+
+		header, err = reader.Next()
+		Ω(err).ShouldNot(HaveOccurred())
+		Ω(header.Name).Should(Equal("outer-dir/inner-dir/some-symlink"))
+		Ω(header.FileInfo().Mode() & os.ModeSymlink).Should(Equal(os.ModeSymlink))
+		Ω(header.Linkname).Should(Equal("some-file"))
 	})
 
 	Context("with a trailing slash", func() {
@@ -95,6 +104,12 @@ var _ = Describe("WriteTar", func() {
 			contents, err := ioutil.ReadAll(reader)
 			Ω(err).ShouldNot(HaveOccurred())
 			Ω(string(contents)).Should(Equal("sup"))
+
+			header, err = reader.Next()
+			Ω(err).ShouldNot(HaveOccurred())
+			Ω(header.Name).Should(Equal("inner-dir/some-symlink"))
+			Ω(header.FileInfo().Mode() & os.ModeSymlink).Should(Equal(os.ModeSymlink))
+			Ω(header.Linkname).Should(Equal("some-file"))
 		})
 	})
 
