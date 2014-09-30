@@ -3,6 +3,7 @@ package extractor_test
 import (
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 
@@ -70,6 +71,7 @@ var _ = Describe("Extractor", func() {
 		archiveFiles = append(archiveFiles, test_helper.ArchiveFile{
 			Name: "./some-symlink",
 			Link: "some-file",
+			Mode: 0755,
 		})
 	}
 
@@ -147,8 +149,49 @@ var _ = Describe("Extractor", func() {
 				target, err := os.Readlink(filepath.Join(extractionDest, "some-symlink"))
 				Ω(err).ShouldNot(HaveOccurred())
 				Ω(target).Should(Equal("some-file"))
-			}
 
+				symlinkInfo, err := os.Lstat(filepath.Join(extractionDest, "some-symlink"))
+				Ω(err).ShouldNot(HaveOccurred())
+
+				Ω(symlinkInfo.Mode() & 0755).Should(Equal(os.FileMode(0755)))
+			}
+		})
+
+		Context("when 'tar' is not in the PATH", func() {
+			var oldPATH string
+
+			BeforeEach(func() {
+				oldPATH = os.Getenv("PATH")
+				os.Setenv("PATH", "/dev/null")
+			})
+
+			AfterEach(func() {
+				os.Setenv("PATH", oldPATH)
+			})
+
+			It("extracts the TGZ's files, generating directories, and honoring file permissions", func() {
+				extractionTest()
+			})
+
+			It("preserves symlinks", func() {
+				extractionTest()
+
+				if runtime.GOOS != "windows" {
+					ls := exec.Command("ls", "-al", extractionDest)
+					ls.Stdout = os.Stdout
+
+					ls.Run()
+
+					target, err := os.Readlink(filepath.Join(extractionDest, "some-symlink"))
+					Ω(err).ShouldNot(HaveOccurred())
+					Ω(target).Should(Equal("some-file"))
+
+					symlinkInfo, err := os.Lstat(filepath.Join(extractionDest, "some-symlink"))
+					Ω(err).ShouldNot(HaveOccurred())
+
+					Ω(symlinkInfo.Mode() & 0755).Should(Equal(os.FileMode(0755)))
+				}
+			})
 		})
 	})
 })

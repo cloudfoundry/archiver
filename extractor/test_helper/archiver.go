@@ -75,6 +75,7 @@ func CreateTarGZArchive(filename string, files []ArchiveFile) {
 				Name:     file.Name,
 				Typeflag: tar.TypeSymlink,
 				Linkname: file.Link,
+				Mode:     file.Mode,
 			}
 		} else {
 			header = &tar.Header{

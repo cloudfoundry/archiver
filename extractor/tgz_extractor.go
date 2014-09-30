@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 )
 
@@ -35,6 +36,17 @@ func (e *tgzExtractor) Extract(src, dest string) error {
 }
 
 func extractTgz(src, dest string) error {
+	tarPath, err := exec.LookPath("tar")
+
+	if err == nil {
+		err := os.MkdirAll(dest, 0755)
+		if err != nil {
+			return err
+		}
+
+		return exec.Command(tarPath, "zxf", src, "-C", dest).Run()
+	}
+
 	fd, err := os.Open(src)
 	if err != nil {
 		return err
