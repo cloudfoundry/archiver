@@ -23,10 +23,10 @@ var _ = Describe("Extractor", func() {
 		var err error
 
 		archive, err := ioutil.TempFile("", "extractor-archive")
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		extractionDest, err = ioutil.TempDir("", "extracted")
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		extractionSrc = archive.Name()
 
@@ -73,39 +73,39 @@ var _ = Describe("Extractor", func() {
 
 	extractionTest := func() {
 		err := extractor.Extract(extractionSrc, extractionDest)
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		fileContents, err := ioutil.ReadFile(filepath.Join(extractionDest, "some-file"))
-		Ω(err).ShouldNot(HaveOccurred())
-		Ω(string(fileContents)).Should(Equal("some-file-contents"))
+		Expect(err).NotTo(HaveOccurred())
+		Expect(string(fileContents)).To(Equal("some-file-contents"))
 
 		fileContents, err = ioutil.ReadFile(filepath.Join(extractionDest, "nonempty-dir", "file-in-dir"))
-		Ω(err).ShouldNot(HaveOccurred())
-		Ω(string(fileContents)).Should(Equal("file-in-dir-contents"))
+		Expect(err).NotTo(HaveOccurred())
+		Expect(string(fileContents)).To(Equal("file-in-dir-contents"))
 
 		executable, err := os.Open(filepath.Join(extractionDest, "legit-exe-not-a-virus.bat"))
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		executableInfo, err := executable.Stat()
-		Ω(err).ShouldNot(HaveOccurred())
-		Ω(executableInfo.Mode()).Should(Equal(os.FileMode(0644)))
+		Expect(err).NotTo(HaveOccurred())
+		Expect(executableInfo.Mode()).To(Equal(os.FileMode(0644)))
 
 		emptyDir, err := os.Open(filepath.Join(extractionDest, "empty-dir"))
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		emptyDirInfo, err := emptyDir.Stat()
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
-		Ω(emptyDirInfo.IsDir()).Should(BeTrue())
+		Expect(emptyDirInfo.IsDir()).To(BeTrue())
 
 		target, err := os.Readlink(filepath.Join(extractionDest, "some-symlink"))
-		Ω(err).ShouldNot(HaveOccurred())
-		Ω(target).Should(Equal("some-file"))
+		Expect(err).NotTo(HaveOccurred())
+		Expect(target).To(Equal("some-file"))
 
 		symlinkInfo, err := os.Lstat(filepath.Join(extractionDest, "some-symlink"))
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
-		Ω(symlinkInfo.Mode() & 0755).Should(Equal(os.FileMode(0755)))
+		Expect(symlinkInfo.Mode() & 0755).To(Equal(os.FileMode(0755)))
 	}
 
 	Context("when the file is a zip archive", func() {
@@ -116,7 +116,7 @@ var _ = Describe("Extractor", func() {
 		Context("when 'unzip' is on the PATH", func() {
 			BeforeEach(func() {
 				_, err := exec.LookPath("unzip")
-				Ω(err).ShouldNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("extracts the ZIP's files, generating directories, and honoring file permissions and symlinks", extractionTest)
@@ -130,7 +130,7 @@ var _ = Describe("Extractor", func() {
 				os.Setenv("PATH", "/dev/null")
 
 				_, err := exec.LookPath("unzip")
-				Ω(err).Should(HaveOccurred())
+				Expect(err).To(HaveOccurred())
 			})
 
 			AfterEach(func() {
@@ -149,7 +149,7 @@ var _ = Describe("Extractor", func() {
 		Context("when 'tar' is on the PATH", func() {
 			BeforeEach(func() {
 				_, err := exec.LookPath("tar")
-				Ω(err).ShouldNot(HaveOccurred())
+				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("extracts the TGZ's files, generating directories, and honoring file permissions and symlinks", extractionTest)
@@ -163,7 +163,7 @@ var _ = Describe("Extractor", func() {
 				os.Setenv("PATH", "/dev/null")
 
 				_, err := exec.LookPath("tar")
-				Ω(err).Should(HaveOccurred())
+				Expect(err).To(HaveOccurred())
 			})
 
 			AfterEach(func() {

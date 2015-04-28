@@ -20,22 +20,22 @@ var _ = Describe("WriteTar", func() {
 
 	BeforeEach(func() {
 		dir, err := ioutil.TempDir("", "archive-dir")
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		err = os.Mkdir(filepath.Join(dir, "outer-dir"), 0755)
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		err = os.Mkdir(filepath.Join(dir, "outer-dir", "inner-dir"), 0755)
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		innerFile, err := os.Create(filepath.Join(dir, "outer-dir", "inner-dir", "some-file"))
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		_, err = innerFile.Write([]byte("sup"))
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		err = os.Symlink("some-file", filepath.Join(dir, "outer-dir", "inner-dir", "some-symlink"))
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		srcPath = filepath.Join(dir, "outer-dir")
 		buffer = new(bytes.Buffer)
@@ -46,34 +46,34 @@ var _ = Describe("WriteTar", func() {
 	})
 
 	It("returns a reader representing a .tar stream", func() {
-		Ω(writeErr).ShouldNot(HaveOccurred())
+		Expect(writeErr).NotTo(HaveOccurred())
 
 		reader := tar.NewReader(buffer)
 
 		header, err := reader.Next()
-		Ω(err).ShouldNot(HaveOccurred())
-		Ω(header.Name).Should(Equal("outer-dir/"))
-		Ω(header.FileInfo().IsDir()).Should(BeTrue())
+		Expect(err).NotTo(HaveOccurred())
+		Expect(header.Name).To(Equal("outer-dir/"))
+		Expect(header.FileInfo().IsDir()).To(BeTrue())
 
 		header, err = reader.Next()
-		Ω(err).ShouldNot(HaveOccurred())
-		Ω(header.Name).Should(Equal("outer-dir/inner-dir/"))
-		Ω(header.FileInfo().IsDir()).Should(BeTrue())
+		Expect(err).NotTo(HaveOccurred())
+		Expect(header.Name).To(Equal("outer-dir/inner-dir/"))
+		Expect(header.FileInfo().IsDir()).To(BeTrue())
 
 		header, err = reader.Next()
-		Ω(err).ShouldNot(HaveOccurred())
-		Ω(header.Name).Should(Equal("outer-dir/inner-dir/some-file"))
-		Ω(header.FileInfo().IsDir()).Should(BeFalse())
+		Expect(err).NotTo(HaveOccurred())
+		Expect(header.Name).To(Equal("outer-dir/inner-dir/some-file"))
+		Expect(header.FileInfo().IsDir()).To(BeFalse())
 
 		contents, err := ioutil.ReadAll(reader)
-		Ω(err).ShouldNot(HaveOccurred())
-		Ω(string(contents)).Should(Equal("sup"))
+		Expect(err).NotTo(HaveOccurred())
+		Expect(string(contents)).To(Equal("sup"))
 
 		header, err = reader.Next()
-		Ω(err).ShouldNot(HaveOccurred())
-		Ω(header.Name).Should(Equal("outer-dir/inner-dir/some-symlink"))
-		Ω(header.FileInfo().Mode() & os.ModeSymlink).Should(Equal(os.ModeSymlink))
-		Ω(header.Linkname).Should(Equal("some-file"))
+		Expect(err).NotTo(HaveOccurred())
+		Expect(header.Name).To(Equal("outer-dir/inner-dir/some-symlink"))
+		Expect(header.FileInfo().Mode() & os.ModeSymlink).To(Equal(os.ModeSymlink))
+		Expect(header.Linkname).To(Equal("some-file"))
 	})
 
 	Context("with a trailing slash", func() {
@@ -82,34 +82,34 @@ var _ = Describe("WriteTar", func() {
 		})
 
 		It("archives the directory's contents", func() {
-			Ω(writeErr).ShouldNot(HaveOccurred())
+			Expect(writeErr).NotTo(HaveOccurred())
 
 			reader := tar.NewReader(buffer)
 
 			header, err := reader.Next()
-			Ω(err).ShouldNot(HaveOccurred())
-			Ω(header.Name).Should(Equal("./"))
-			Ω(header.FileInfo().IsDir()).Should(BeTrue())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(header.Name).To(Equal("./"))
+			Expect(header.FileInfo().IsDir()).To(BeTrue())
 
 			header, err = reader.Next()
-			Ω(err).ShouldNot(HaveOccurred())
-			Ω(header.Name).Should(Equal("inner-dir/"))
-			Ω(header.FileInfo().IsDir()).Should(BeTrue())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(header.Name).To(Equal("inner-dir/"))
+			Expect(header.FileInfo().IsDir()).To(BeTrue())
 
 			header, err = reader.Next()
-			Ω(err).ShouldNot(HaveOccurred())
-			Ω(header.Name).Should(Equal("inner-dir/some-file"))
-			Ω(header.FileInfo().IsDir()).Should(BeFalse())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(header.Name).To(Equal("inner-dir/some-file"))
+			Expect(header.FileInfo().IsDir()).To(BeFalse())
 
 			contents, err := ioutil.ReadAll(reader)
-			Ω(err).ShouldNot(HaveOccurred())
-			Ω(string(contents)).Should(Equal("sup"))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(string(contents)).To(Equal("sup"))
 
 			header, err = reader.Next()
-			Ω(err).ShouldNot(HaveOccurred())
-			Ω(header.Name).Should(Equal("inner-dir/some-symlink"))
-			Ω(header.FileInfo().Mode() & os.ModeSymlink).Should(Equal(os.ModeSymlink))
-			Ω(header.Linkname).Should(Equal("some-file"))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(header.Name).To(Equal("inner-dir/some-symlink"))
+			Expect(header.FileInfo().Mode() & os.ModeSymlink).To(Equal(os.ModeSymlink))
+			Expect(header.Linkname).To(Equal("some-file"))
 		})
 	})
 
@@ -119,18 +119,18 @@ var _ = Describe("WriteTar", func() {
 		})
 
 		It("archives the single file at the root", func() {
-			Ω(writeErr).ShouldNot(HaveOccurred())
+			Expect(writeErr).NotTo(HaveOccurred())
 
 			reader := tar.NewReader(buffer)
 
 			header, err := reader.Next()
-			Ω(err).ShouldNot(HaveOccurred())
-			Ω(header.Name).Should(Equal("some-file"))
-			Ω(header.FileInfo().IsDir()).Should(BeFalse())
+			Expect(err).NotTo(HaveOccurred())
+			Expect(header.Name).To(Equal("some-file"))
+			Expect(header.FileInfo().IsDir()).To(BeFalse())
 
 			contents, err := ioutil.ReadAll(reader)
-			Ω(err).ShouldNot(HaveOccurred())
-			Ω(string(contents)).Should(Equal("sup"))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(string(contents)).To(Equal("sup"))
 		})
 	})
 
@@ -140,7 +140,7 @@ var _ = Describe("WriteTar", func() {
 		})
 
 		It("returns an error", func() {
-			Ω(writeErr).Should(BeAssignableToTypeOf(&os.PathError{}))
+			Expect(writeErr).To(BeAssignableToTypeOf(&os.PathError{}))
 		})
 	})
 })

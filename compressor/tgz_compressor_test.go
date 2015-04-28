@@ -15,13 +15,13 @@ import (
 func retrieveFilePaths(dir string) (results []string) {
 	err := filepath.Walk(dir, func(singlePath string, info os.FileInfo, err error) error {
 		relative, err := filepath.Rel(dir, singlePath)
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		results = append(results, relative)
 		return nil
 	})
 
-	Ω(err).NotTo(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 
 	return results
 }
@@ -40,24 +40,24 @@ var _ = Describe("Tgz Compressor", func() {
 		extracticator = extractor.NewDetectable()
 
 		destDir, err = ioutil.TempDir("", "")
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		victimDir, err = ioutil.TempDir("", "")
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		victimFile, err = ioutil.TempFile("", "")
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		err = os.Mkdir(filepath.Join(victimDir, "empty"), 0755)
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		notEmptyDirPath := filepath.Join(victimDir, "not_empty")
 
 		err = os.Mkdir(notEmptyDirPath, 0755)
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		err = ioutil.WriteFile(filepath.Join(notEmptyDirPath, "some_file"), []byte("stuff"), 0644)
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	AfterEach(func() {
@@ -72,22 +72,22 @@ var _ = Describe("Tgz Compressor", func() {
 		destFile := filepath.Join(destDir, "compress-dst.tgz")
 
 		err := compressor.Compress(srcFile, destFile)
-		Ω(err).NotTo(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		finalReadingDir, err := ioutil.TempDir(destDir, "final")
-		Ω(err).NotTo(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		defer os.RemoveAll(finalReadingDir)
 
 		err = extracticator.Extract(destFile, finalReadingDir)
-		Ω(err).NotTo(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		expectedContent, err := ioutil.ReadFile(srcFile)
-		Ω(err).NotTo(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		actualContent, err := ioutil.ReadFile(filepath.Join(finalReadingDir, filepath.Base(srcFile)))
-		Ω(err).NotTo(HaveOccurred())
-		Ω(actualContent).Should(Equal(expectedContent))
+		Expect(err).NotTo(HaveOccurred())
+		Expect(actualContent).To(Equal(expectedContent))
 	})
 
 	It("compresses the src path recursively to dest file", func() {
@@ -96,25 +96,25 @@ var _ = Describe("Tgz Compressor", func() {
 		destFile := filepath.Join(destDir, "compress-dst.tgz")
 
 		err := compressor.Compress(srcDir+"/", destFile)
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		finalReadingDir, err := ioutil.TempDir(destDir, "final")
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		err = extracticator.Extract(destFile, finalReadingDir)
-		Ω(err).ShouldNot(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		expectedFilePaths := retrieveFilePaths(srcDir)
 		actualFilePaths := retrieveFilePaths(finalReadingDir)
 
-		Ω(actualFilePaths).To(Equal(expectedFilePaths))
+		Expect(actualFilePaths).To(Equal(expectedFilePaths))
 
 		emptyDir, err := os.Open(filepath.Join(finalReadingDir, "empty"))
-		Ω(err).NotTo(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
 		emptyDirInfo, err := emptyDir.Stat()
-		Ω(err).NotTo(HaveOccurred())
+		Expect(err).NotTo(HaveOccurred())
 
-		Ω(emptyDirInfo.IsDir()).To(BeTrue())
+		Expect(emptyDirInfo.IsDir()).To(BeTrue())
 	})
 })
