@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 )
 
 type tgzExtractor struct{}
@@ -36,15 +37,17 @@ func (e *tgzExtractor) Extract(src, dest string) error {
 }
 
 func extractTgz(src, dest string) error {
-	tarPath, err := exec.LookPath("tar")
+	if runtime.GOOS != "windows" {
+		tarPath, err := exec.LookPath("tar")
 
-	if err == nil {
-		err := os.MkdirAll(dest, 0755)
-		if err != nil {
-			return err
+		if err == nil {
+			err := os.MkdirAll(dest, 0755)
+			if err != nil {
+				return err
+			}
+
+			return exec.Command(tarPath, "pzxf", src, "-C", dest).Run()
 		}
-
-		return exec.Command(tarPath, "pzxf", src, "-C", dest).Run()
 	}
 
 	fd, err := os.Open(src)
