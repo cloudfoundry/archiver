@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/pivotal-golang/archiver/compressor"
+	. "code.cloudfoundry.org/archiver/compressor"
 )
 
 var _ = Describe("WriteTar", func() {
