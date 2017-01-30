@@ -173,4 +173,13 @@ var _ = Describe("Extractor", func() {
 			It("extracts the TGZ's files, generating directories, and honoring file permissions and symlinks", extractionTest)
 		})
 	})
+
+	Context("when the file is a tar archive", func() {
+		BeforeEach(func() {
+			extractor = NewTar()
+			test_helper.CreateTarArchive(extractionSrc, archiveFiles)
+		})
+
+		It("extracts the TAR's files, generating directories, and honoring file permissions and symlinks", extractionTest)
+	})
 })
