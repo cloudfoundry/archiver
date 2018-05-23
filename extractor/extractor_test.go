@@ -120,6 +120,24 @@ var _ = Describe("Extractor", func() {
 			})
 
 			It("extracts the ZIP's files, generating directories, and honoring file permissions and symlinks", extractionTest)
+
+			Context("with a bad zip archive", func() {
+				BeforeEach(func() {
+					test_helper.CreateZipArchive(extractionSrc, []test_helper.ArchiveFile{
+						{
+							Name: "../some-file",
+							Body: "file-in-bad-dir-contents",
+						},
+					})
+				})
+
+				It("returns an error", func() {
+					subdir := filepath.Join(extractionDest, "subdir")
+					Expect(os.Mkdir(subdir, 0777)).To(Succeed())
+					err := extractor.Extract(extractionSrc, subdir)
+					Expect(err).To(HaveOccurred())
+				})
+			})
 		})
 
 		Context("when 'unzip' is not in the PATH", func() {
@@ -138,6 +156,27 @@ var _ = Describe("Extractor", func() {
 			})
 
 			It("extracts the ZIP's files, generating directories, and honoring file permissions and symlinks", extractionTest)
+
+			Context("with a bad zip archive", func() {
+				BeforeEach(func() {
+					test_helper.CreateZipArchive(extractionSrc, []test_helper.ArchiveFile{
+						{
+							Name: "../some-file",
+							Body: "file-in-bad-dir-contents",
+						},
+					})
+				})
+
+				It("does not insecurely extract the file outside of the provided destination", func() {
+					subdir := filepath.Join(extractionDest, "subdir")
+					Expect(os.Mkdir(subdir, 0777)).To(Succeed())
+					err := extractor.Extract(extractionSrc, subdir)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(filepath.Join(extractionDest, "some-file")).NotTo(BeAnExistingFile())
+					Expect(filepath.Join(subdir, "some-file")).To(BeAnExistingFile())
+				})
+			})
 		})
 	})
 
@@ -153,6 +192,24 @@ var _ = Describe("Extractor", func() {
 			})
 
 			It("extracts the TGZ's files, generating directories, and honoring file permissions and symlinks", extractionTest)
+
+			Context("with a bad tgz archive", func() {
+				BeforeEach(func() {
+					test_helper.CreateTarGZArchive(extractionSrc, []test_helper.ArchiveFile{
+						{
+							Name: "../some-file",
+							Body: "file-in-bad-dir-contents",
+						},
+					})
+				})
+
+				It("returns an error", func() {
+					subdir := filepath.Join(extractionDest, "subdir")
+					Expect(os.Mkdir(subdir, 0777)).To(Succeed())
+					err := extractor.Extract(extractionSrc, subdir)
+					Expect(err).To(HaveOccurred())
+				})
+			})
 		})
 
 		Context("when 'tar' is not in the PATH", func() {
@@ -171,6 +228,26 @@ var _ = Describe("Extractor", func() {
 			})
 
 			It("extracts the TGZ's files, generating directories, and honoring file permissions and symlinks", extractionTest)
+
+			Context("with a bad tgz archive", func() {
+				BeforeEach(func() {
+					test_helper.CreateTarGZArchive(extractionSrc, []test_helper.ArchiveFile{
+						{
+							Name: "../some-file",
+							Body: "file-in-bad-dir-contents",
+						},
+					})
+				})
+
+				It("does not insecurely extract the file outside of the provided destination", func() {
+					subdir := filepath.Join(extractionDest, "subdir")
+					Expect(os.Mkdir(subdir, 0777)).To(Succeed())
+					err := extractor.Extract(extractionSrc, subdir)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(filepath.Join(extractionDest, "some-file")).NotTo(BeAnExistingFile())
+					Expect(filepath.Join(subdir, "some-file")).To(BeAnExistingFile())
+				})
+			})
 		})
 	})
 
@@ -181,5 +258,25 @@ var _ = Describe("Extractor", func() {
 		})
 
 		It("extracts the TAR's files, generating directories, and honoring file permissions and symlinks", extractionTest)
+
+		Context("with a bad tar archive", func() {
+			BeforeEach(func() {
+				test_helper.CreateTarArchive(extractionSrc, []test_helper.ArchiveFile{
+					{
+						Name: "../some-file",
+						Body: "file-in-bad-dir-contents",
+					},
+				})
+			})
+
+			It("does not insecurely extract the file outside of the provided destination", func() {
+				subdir := filepath.Join(extractionDest, "subdir")
+				Expect(os.Mkdir(subdir, 0777)).To(Succeed())
+				err := extractor.Extract(extractionSrc, subdir)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(filepath.Join(extractionDest, "some-file")).NotTo(BeAnExistingFile())
+				Expect(filepath.Join(subdir, "some-file")).To(BeAnExistingFile())
+			})
+		})
 	})
 })

@@ -8,6 +8,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	securejoin "github.com/cyphar/filepath-securejoin"
 )
 
 type zipExtractor struct{}
@@ -77,16 +79,16 @@ func extractZip(src, dest string) error {
 }
 
 func extractZipArchiveFile(file *zip.File, dest string, input io.Reader) error {
-	filePath := filepath.Join(dest, file.Name)
+	filePath, err := securejoin.SecureJoin(dest, file.Name)
 	fileInfo := file.FileInfo()
 
 	if fileInfo.IsDir() {
-		err := os.MkdirAll(filePath, fileInfo.Mode())
+		err = os.MkdirAll(filePath, fileInfo.Mode())
 		if err != nil {
 			return err
 		}
 	} else {
-		err := os.MkdirAll(filepath.Dir(filePath), 0755)
+		err = os.MkdirAll(filepath.Dir(filePath), 0755)
 		if err != nil {
 			return err
 		}
