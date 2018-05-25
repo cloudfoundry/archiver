@@ -3,7 +3,6 @@ package extractor_test
 import (
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	. "github.com/onsi/ginkgo"
@@ -113,69 +112,26 @@ var _ = Describe("Extractor", func() {
 			test_helper.CreateZipArchive(extractionSrc, archiveFiles)
 		})
 
-		Context("when 'unzip' is on the PATH", func() {
+		It("extracts the ZIP's files, generating directories, and honoring file permissions and symlinks", extractionTest)
+
+		Context("with a bad zip archive", func() {
 			BeforeEach(func() {
-				_, err := exec.LookPath("unzip")
+				test_helper.CreateZipArchive(extractionSrc, []test_helper.ArchiveFile{
+					{
+						Name: "../some-file",
+						Body: "file-in-bad-dir-contents",
+					},
+				})
+			})
+
+			It("does not insecurely extract the file outside of the provided destination", func() {
+				subdir := filepath.Join(extractionDest, "subdir")
+				Expect(os.Mkdir(subdir, 0777)).To(Succeed())
+				err := extractor.Extract(extractionSrc, subdir)
 				Expect(err).NotTo(HaveOccurred())
-			})
 
-			It("extracts the ZIP's files, generating directories, and honoring file permissions and symlinks", extractionTest)
-
-			Context("with a bad zip archive", func() {
-				BeforeEach(func() {
-					test_helper.CreateZipArchive(extractionSrc, []test_helper.ArchiveFile{
-						{
-							Name: "../some-file",
-							Body: "file-in-bad-dir-contents",
-						},
-					})
-				})
-
-				It("returns an error", func() {
-					subdir := filepath.Join(extractionDest, "subdir")
-					Expect(os.Mkdir(subdir, 0777)).To(Succeed())
-					err := extractor.Extract(extractionSrc, subdir)
-					Expect(err).To(HaveOccurred())
-				})
-			})
-		})
-
-		Context("when 'unzip' is not in the PATH", func() {
-			var oldPATH string
-
-			BeforeEach(func() {
-				oldPATH = os.Getenv("PATH")
-				os.Setenv("PATH", "/dev/null")
-
-				_, err := exec.LookPath("unzip")
-				Expect(err).To(HaveOccurred())
-			})
-
-			AfterEach(func() {
-				os.Setenv("PATH", oldPATH)
-			})
-
-			It("extracts the ZIP's files, generating directories, and honoring file permissions and symlinks", extractionTest)
-
-			Context("with a bad zip archive", func() {
-				BeforeEach(func() {
-					test_helper.CreateZipArchive(extractionSrc, []test_helper.ArchiveFile{
-						{
-							Name: "../some-file",
-							Body: "file-in-bad-dir-contents",
-						},
-					})
-				})
-
-				It("does not insecurely extract the file outside of the provided destination", func() {
-					subdir := filepath.Join(extractionDest, "subdir")
-					Expect(os.Mkdir(subdir, 0777)).To(Succeed())
-					err := extractor.Extract(extractionSrc, subdir)
-					Expect(err).NotTo(HaveOccurred())
-
-					Expect(filepath.Join(extractionDest, "some-file")).NotTo(BeAnExistingFile())
-					Expect(filepath.Join(subdir, "some-file")).To(BeAnExistingFile())
-				})
+				Expect(filepath.Join(extractionDest, "some-file")).NotTo(BeAnExistingFile())
+				Expect(filepath.Join(subdir, "some-file")).To(BeAnExistingFile())
 			})
 		})
 	})
@@ -185,68 +141,25 @@ var _ = Describe("Extractor", func() {
 			test_helper.CreateTarGZArchive(extractionSrc, archiveFiles)
 		})
 
-		Context("when 'tar' is on the PATH", func() {
+		It("extracts the TGZ's files, generating directories, and honoring file permissions and symlinks", extractionTest)
+
+		Context("with a bad tgz archive", func() {
 			BeforeEach(func() {
-				_, err := exec.LookPath("tar")
+				test_helper.CreateTarGZArchive(extractionSrc, []test_helper.ArchiveFile{
+					{
+						Name: "../some-file",
+						Body: "file-in-bad-dir-contents",
+					},
+				})
+			})
+
+			It("does not insecurely extract the file outside of the provided destination", func() {
+				subdir := filepath.Join(extractionDest, "subdir")
+				Expect(os.Mkdir(subdir, 0777)).To(Succeed())
+				err := extractor.Extract(extractionSrc, subdir)
 				Expect(err).NotTo(HaveOccurred())
-			})
-
-			It("extracts the TGZ's files, generating directories, and honoring file permissions and symlinks", extractionTest)
-
-			Context("with a bad tgz archive", func() {
-				BeforeEach(func() {
-					test_helper.CreateTarGZArchive(extractionSrc, []test_helper.ArchiveFile{
-						{
-							Name: "../some-file",
-							Body: "file-in-bad-dir-contents",
-						},
-					})
-				})
-
-				It("returns an error", func() {
-					subdir := filepath.Join(extractionDest, "subdir")
-					Expect(os.Mkdir(subdir, 0777)).To(Succeed())
-					err := extractor.Extract(extractionSrc, subdir)
-					Expect(err).To(HaveOccurred())
-				})
-			})
-		})
-
-		Context("when 'tar' is not in the PATH", func() {
-			var oldPATH string
-
-			BeforeEach(func() {
-				oldPATH = os.Getenv("PATH")
-				os.Setenv("PATH", "/dev/null")
-
-				_, err := exec.LookPath("tar")
-				Expect(err).To(HaveOccurred())
-			})
-
-			AfterEach(func() {
-				os.Setenv("PATH", oldPATH)
-			})
-
-			It("extracts the TGZ's files, generating directories, and honoring file permissions and symlinks", extractionTest)
-
-			Context("with a bad tgz archive", func() {
-				BeforeEach(func() {
-					test_helper.CreateTarGZArchive(extractionSrc, []test_helper.ArchiveFile{
-						{
-							Name: "../some-file",
-							Body: "file-in-bad-dir-contents",
-						},
-					})
-				})
-
-				It("does not insecurely extract the file outside of the provided destination", func() {
-					subdir := filepath.Join(extractionDest, "subdir")
-					Expect(os.Mkdir(subdir, 0777)).To(Succeed())
-					err := extractor.Extract(extractionSrc, subdir)
-					Expect(err).NotTo(HaveOccurred())
-					Expect(filepath.Join(extractionDest, "some-file")).NotTo(BeAnExistingFile())
-					Expect(filepath.Join(subdir, "some-file")).To(BeAnExistingFile())
-				})
+				Expect(filepath.Join(extractionDest, "some-file")).NotTo(BeAnExistingFile())
+				Expect(filepath.Join(subdir, "some-file")).To(BeAnExistingFile())
 			})
 		})
 	})
