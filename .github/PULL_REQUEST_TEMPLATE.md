@@ -1,9 +1,13 @@
 Thank you for submitting a pull request to the archiver repository. We appreciate the contribution. To help us with getting better context for the pull request please follow these guidelines:
 
-## Please make sure to complete the following steps
+## Please complete all of the following steps
 
-* [ ] Check the [Contributing document](https://github.com/cloudfoundry/diego-release/blob/develop/CONTRIBUTING.md) on how to sign the CLA and run tests.
-* [ ] Please [open an issue](https://github.com/cloudfoundry/diego-release/issues/new) to request review and response to your pull request.
+1. Check the [Contributing document](https://github.com/cloudfoundry/diego-release/blob/develop/CONTRIBUTING.md) on how to sign the CLA and run tests.
+1. Submit your PR to this repo.
+1. [**Submit an accompanying Diego-Release issue**](https://github.com/cloudfoundry/diego-release/issues/new) referencing this PR so we know to review this pull request. 
+  - Note: **Your PR will not be reviewed unless you submit the Diego-Release issue** 
+
+***************************
 
 ## Please provide the following information when submitting pull request:
 
