@@ -1,4 +1,5 @@
-Thank you for submitting a pull request to the archiver repository. 
+Thank you for submitting a pull request to the archiver repository!
+
 We appreciate the contribution. To help us understand the context for your pull request, please fill out this template to the best of your ability.
 
 ## Please make sure to complete all of the following steps
