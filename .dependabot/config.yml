@@ -1,0 +1,7 @@
+version: 1
+update_configs:
+  - package_manager: "go:modules"
+    update_schedule: "daily"
+    directory: "/"
+    default_labels:
+      - "dependencies"
