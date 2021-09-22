@@ -1,4 +1,4 @@
-# github.com/cyphar/filepath-securejoin v0.2.2
+# github.com/cyphar/filepath-securejoin v0.2.3
 ## explicit
 github.com/cyphar/filepath-securejoin
 # github.com/fsnotify/fsnotify v1.4.9
@@ -46,9 +46,6 @@ github.com/onsi/gomega/matchers/support/goraph/edge
 github.com/onsi/gomega/matchers/support/goraph/node
 github.com/onsi/gomega/matchers/support/goraph/util
 github.com/onsi/gomega/types
-# github.com/pkg/errors v0.9.1
-## explicit
-github.com/pkg/errors
 # golang.org/x/net v0.0.0-20210428140749-89ef3d95e781
 golang.org/x/net/html
 golang.org/x/net/html/atom
