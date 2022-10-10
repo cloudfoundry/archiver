@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/cyphar/filepath-securejoin v0.2.3
 	github.com/onsi/ginkgo v1.16.5
-	github.com/onsi/gomega v1.20.2
+	github.com/onsi/gomega v1.21.1
 )
 
 require (
