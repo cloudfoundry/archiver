@@ -3,7 +3,7 @@ module code.cloudfoundry.org/archiver
 go 1.20
 
 require (
-	github.com/cyphar/filepath-securejoin v0.2.3
+	github.com/cyphar/filepath-securejoin v0.2.4
 	github.com/onsi/ginkgo/v2 v2.11.0
 	github.com/onsi/gomega v1.27.10
 )
