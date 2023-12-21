@@ -1,6 +1,6 @@
 module code.cloudfoundry.org/archiver
 
-go 1.20
+go 1.21
 
 require (
 	github.com/cyphar/filepath-securejoin v0.2.4
