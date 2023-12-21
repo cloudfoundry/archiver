@@ -2,7 +2,7 @@ name: Go
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ test ]
 
 jobs:
   test:
@@ -20,8 +20,14 @@ jobs:
       with:
         go-version: ${{ env.go_version }}
 
-    - name: Build
-      run: go build -v ./...
+    - name: Fmt
+      run: go fmt ./...
+
+    - name: Vet
+      run: go vet ./...
+
+    - name: Install Ginkgo
+      run: go install github.com/onsi/ginkgo/v2/ginkgo
 
     - name: Test
-      run: go test -v ./...
+      run: ginkgo --keep-going --trace -r --fail-on-pending --randomize-all --nodes=7 --race --timeout 20m ./...
