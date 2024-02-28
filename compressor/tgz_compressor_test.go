@@ -14,6 +14,7 @@ import (
 
 func retrieveFilePaths(dir string) (results []string) {
 	err := filepath.Walk(dir, func(singlePath string, info os.FileInfo, err error) error {
+		Expect(err).ToNot(HaveOccurred())
 		relative, err := filepath.Rel(dir, singlePath)
 		Expect(err).NotTo(HaveOccurred())
 
