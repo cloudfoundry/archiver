@@ -65,6 +65,9 @@ func extractZip(src, dest string) error {
 
 func extractZipArchiveFile(file *zip.File, dest string, input io.Reader) error {
 	filePath, err := securejoin.SecureJoin(dest, file.Name)
+	if err != nil {
+		return err
+	}
 	fileInfo := file.FileInfo()
 
 	if fileInfo.IsDir() {
