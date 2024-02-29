@@ -1,7 +1,6 @@
 package compressor_test
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -40,13 +39,13 @@ var _ = Describe("Tgz Compressor", func() {
 		compressor = NewTgz()
 		extracticator = extractor.NewDetectable()
 
-		destDir, err = ioutil.TempDir("", "")
+		destDir, err = os.MkdirTemp("", "")
 		Expect(err).NotTo(HaveOccurred())
 
-		victimDir, err = ioutil.TempDir("", "")
+		victimDir, err = os.MkdirTemp("", "")
 		Expect(err).NotTo(HaveOccurred())
 
-		victimFile, err = ioutil.TempFile("", "")
+		victimFile, err = os.CreateTemp("", "")
 		Expect(err).NotTo(HaveOccurred())
 
 		err = os.Mkdir(filepath.Join(victimDir, "empty"), 0755)
@@ -57,7 +56,7 @@ var _ = Describe("Tgz Compressor", func() {
 		err = os.Mkdir(notEmptyDirPath, 0755)
 		Expect(err).NotTo(HaveOccurred())
 
-		err = ioutil.WriteFile(filepath.Join(notEmptyDirPath, "some_file"), []byte("stuff"), 0644)
+		err = os.WriteFile(filepath.Join(notEmptyDirPath, "some_file"), []byte("stuff"), 0644)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -75,7 +74,7 @@ var _ = Describe("Tgz Compressor", func() {
 		err := compressor.Compress(srcFile, destFile)
 		Expect(err).NotTo(HaveOccurred())
 
-		finalReadingDir, err := ioutil.TempDir(destDir, "final")
+		finalReadingDir, err := os.MkdirTemp(destDir, "final")
 		Expect(err).NotTo(HaveOccurred())
 
 		defer os.RemoveAll(finalReadingDir)
@@ -83,10 +82,10 @@ var _ = Describe("Tgz Compressor", func() {
 		err = extracticator.Extract(destFile, finalReadingDir)
 		Expect(err).NotTo(HaveOccurred())
 
-		expectedContent, err := ioutil.ReadFile(srcFile)
+		expectedContent, err := os.ReadFile(srcFile)
 		Expect(err).NotTo(HaveOccurred())
 
-		actualContent, err := ioutil.ReadFile(filepath.Join(finalReadingDir, filepath.Base(srcFile)))
+		actualContent, err := os.ReadFile(filepath.Join(finalReadingDir, filepath.Base(srcFile)))
 		Expect(err).NotTo(HaveOccurred())
 		Expect(actualContent).To(Equal(expectedContent))
 	})
@@ -99,7 +98,7 @@ var _ = Describe("Tgz Compressor", func() {
 		err := compressor.Compress(srcDir+"/", destFile)
 		Expect(err).NotTo(HaveOccurred())
 
-		finalReadingDir, err := ioutil.TempDir(destDir, "final")
+		finalReadingDir, err := os.MkdirTemp(destDir, "final")
 		Expect(err).NotTo(HaveOccurred())
 
 		err = extracticator.Extract(destFile, finalReadingDir)
