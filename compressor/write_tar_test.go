@@ -3,7 +3,7 @@ package compressor_test
 import (
 	"archive/tar"
 	"bytes"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -19,7 +19,7 @@ var _ = Describe("WriteTar", func() {
 	var writeErr error
 
 	BeforeEach(func() {
-		dir, err := ioutil.TempDir("", "archive-dir")
+		dir, err := os.MkdirTemp("", "archive-dir")
 		Expect(err).NotTo(HaveOccurred())
 
 		err = os.Mkdir(filepath.Join(dir, "outer-dir"), 0755)
@@ -65,7 +65,7 @@ var _ = Describe("WriteTar", func() {
 		Expect(header.Name).To(Equal("outer-dir/inner-dir/some-file"))
 		Expect(header.FileInfo().IsDir()).To(BeFalse())
 
-		contents, err := ioutil.ReadAll(reader)
+		contents, err := io.ReadAll(reader)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(string(contents)).To(Equal("sup"))
 
@@ -101,7 +101,7 @@ var _ = Describe("WriteTar", func() {
 			Expect(header.Name).To(Equal("inner-dir/some-file"))
 			Expect(header.FileInfo().IsDir()).To(BeFalse())
 
-			contents, err := ioutil.ReadAll(reader)
+			contents, err := io.ReadAll(reader)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(string(contents)).To(Equal("sup"))
 
@@ -128,7 +128,7 @@ var _ = Describe("WriteTar", func() {
 			Expect(header.Name).To(Equal("some-file"))
 			Expect(header.FileInfo().IsDir()).To(BeFalse())
 
-			contents, err := ioutil.ReadAll(reader)
+			contents, err := io.ReadAll(reader)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(string(contents)).To(Equal("sup"))
 		})

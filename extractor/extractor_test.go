@@ -1,7 +1,6 @@
 package extractor_test
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -21,10 +20,10 @@ var _ = Describe("Extractor", func() {
 	BeforeEach(func() {
 		var err error
 
-		archive, err := ioutil.TempFile("", "extractor-archive")
+		archive, err := os.CreateTemp("", "extractor-archive")
 		Expect(err).NotTo(HaveOccurred())
 
-		extractionDest, err = ioutil.TempDir("", "extracted")
+		extractionDest, err = os.MkdirTemp("", "extracted")
 		Expect(err).NotTo(HaveOccurred())
 
 		extractionSrc = archive.Name()
@@ -74,11 +73,11 @@ var _ = Describe("Extractor", func() {
 		err := extractor.Extract(extractionSrc, extractionDest)
 		Expect(err).NotTo(HaveOccurred())
 
-		fileContents, err := ioutil.ReadFile(filepath.Join(extractionDest, "some-file"))
+		fileContents, err := os.ReadFile(filepath.Join(extractionDest, "some-file"))
 		Expect(err).NotTo(HaveOccurred())
 		Expect(string(fileContents)).To(Equal("some-file-contents"))
 
-		fileContents, err = ioutil.ReadFile(filepath.Join(extractionDest, "nonempty-dir", "file-in-dir"))
+		fileContents, err = os.ReadFile(filepath.Join(extractionDest, "nonempty-dir", "file-in-dir"))
 		Expect(err).NotTo(HaveOccurred())
 		Expect(string(fileContents)).To(Equal("file-in-dir-contents"))
 
