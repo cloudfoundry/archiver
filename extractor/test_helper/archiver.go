@@ -14,7 +14,7 @@ import (
 type ArchiveFile struct {
 	Name   string
 	Body   string
-	Mode   int64
+	Mode   os.FileMode
 	Dir    bool
 	Link   string
 	Xattrs map[string]string
@@ -37,9 +37,9 @@ func CreateZipArchive(filename string, files []ArchiveFile) {
 		}
 
 		if file.Link != "" {
-			header.SetMode(os.FileMode(mode) | os.ModeSymlink)
+			header.SetMode(mode | os.ModeSymlink)
 		} else {
-			header.SetMode(os.FileMode(mode))
+			header.SetMode(mode)
 		}
 
 		f, err := w.CreateHeader(header)
@@ -107,12 +107,12 @@ func WriteTar(destination io.Writer, files []ArchiveFile) {
 				Name:     file.Name,
 				Typeflag: tar.TypeSymlink,
 				Linkname: file.Link,
-				Mode:     file.Mode,
+				Mode:     int64(file.Mode),
 			}
 		} else {
 			header = &tar.Header{
 				Name: file.Name,
-				Mode: mode,
+				Mode: int64(mode),
 				Size: int64(len(file.Body)),
 			}
 		}
