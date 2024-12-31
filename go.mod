@@ -6,8 +6,8 @@ toolchain go1.22.3
 
 require (
 	github.com/cyphar/filepath-securejoin v0.3.6
-	github.com/onsi/ginkgo/v2 v2.22.1
-	github.com/onsi/gomega v1.36.1
+	github.com/onsi/ginkgo/v2 v2.22.2
+	github.com/onsi/gomega v1.36.2
 )
 
 require (
